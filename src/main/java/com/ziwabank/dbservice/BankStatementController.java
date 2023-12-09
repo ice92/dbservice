@@ -1,11 +1,16 @@
 package com.ziwabank.dbservice;
 
 // BankStatementController.java
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -34,6 +39,22 @@ public class BankStatementController {
         return callOtherApi(request.getEmailAddress(),bankStatement);
     }
     private String callOtherApi(String email,List<String> bankStatement) {
+        String apiUrl = "http://report-svc:5000/convert";
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "text/plain");
+        String param=email+"\n"+bankStatement.toString();
+        // Create request entity with headers and data
+        HttpEntity<String> requestEntity = new HttpEntity<>(param, headers);
+
+        // Create RestTemplate instance
+        RestTemplate restTemplate = new RestTemplate();
+
+        // Make the HTTP POST request
+        ResponseEntity<String> responseEntity = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
+
+        // Handle the response as needed
+        String responseBody = responseEntity.getBody();
+        System.out.println("Response: " + responseBody);
         return "Data sent to another API successfully";
     }
     private List<String> readBankStatementFromCsv(Request request) {
